@@ -1,4 +1,4 @@
-module MyUitls
+module github.com/littleboss01/MyUitls
 
 go 1.20
 
