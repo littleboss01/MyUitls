@@ -565,7 +565,7 @@ func GetMailAddr(email string, isImap bool) (mailAddr string, serverName string,
 	}
 	//如果143可以联通，则使用143端口，否则使用993端口
 	if isImap {
-		if TcpCheck(serverName, 143) {
+		if isSSl == false && TcpCheck(serverName, 143) {
 			port = 143
 			isSSl = false
 		} else {
@@ -574,7 +574,7 @@ func GetMailAddr(email string, isImap bool) (mailAddr string, serverName string,
 		}
 
 	} else {
-		if TcpCheck(serverName, 110) {
+		if isSSl == false && TcpCheck(serverName, 110) {
 			port = 110
 			isSSl = false
 		} else {
