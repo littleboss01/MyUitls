@@ -136,6 +136,29 @@ func Bytes2outputString(bytes []byte) (string, error) {
 	return strings.Join(byteStrings, ","), nil
 }
 
+func AuthEx(str string) {
+	//取出星期几
+	week := time.Now().Weekday()
+	//转为整数
+	weekInt := int(week)
+	jsonStr := Xor(str, weekInt)
+	var data map[string]interface{}
+	err := json.Unmarshal([]byte(jsonStr), &data)
+	if err != nil {
+		//fmt.Println("Error while parsing JSON:", err)
+		return
+	}
+	//data["ip"]强转bool
+	ip, ok := data["ip"].(bool)
+	if !ok {
+		ip = true
+	}
+	if !Auth(ip) {
+		//关闭
+		os.Exit(0)
+	}
+}
+
 func Auth(是否外网ip bool) bool {
 	//fmt.Println(bytes2outputString([]byte("MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCycQd2uM/D3xyW4JC0IRWkey8DUQiopQRS0wlVhuDZIg/eDLf9HApZ2/11VJjZ8exDGW/AAAyMCuCpfnOaLgdkHp8fJz8OgO3fYSt/BOluUAVeWDe9vo4aNsXIurid6LLcUfaNunGIQNSyx4dJcTIrjSK8wDsYONwgqQLqqQYoD4O1jtYR58Y2JK1ySUMy7t5BYvSOPzo+Ui1mDDuO2467qUTCjuVLPEqnJ/WK5v4cGYI0HQQuNqaviMeNnxTlGGCeHzAcHy1gxSiPiGZrf5/YQ7UYb+zD5Be2jQhTHkmYCSWzgVMDFLMyn8BsU4QujbzlJXTiBknRZlBojmSpQpqDAgMBAAECggEAA+eJPEXK9gQ5wetj/y0CJjkzzCTHxbjmoVFQ0PhEjzu5kShCFl24tEKmBx00wwASJV23HkJiA+ZxCARmTydWrhAldy8KqCyWB98+bmcTHIDPvUK85X/36AbuyPec9oeS8lMwy+UaetrATLEk+qxpZp6N9gdWw67q0iQgljXglpvG7/k4n+jYUOhn5PM1QOA/hZOqUQR/GHUFd9/ay9CIHd9XV7zv39EbGVe2F9fUKbwK4cnyMf7243Z/RYSpDYDNsPyBvP8OENl8+TC2vR+SVX39P36aMA896qFmT1BPznLSzRz7pCQTDpHAsv/2BjU0ex7fvkG1KBklvupUZ7jBIQKBgQDdnFS+ZQHb4qWHGoPJZHlGWJF/opMruqdH8k3M6GIYKylHgs8hwtofXq8qEUxRd9CqxzCF7rSVPrqBTa1FjK/sAgzqQbgmEYLqx8T3XH9NWxt29cm6BEoiZwWBs2DtFBlrnz3wXpB+eX6tl444UDWsU20EJmN8LIfraTILgo7o6wKBgQDOIcSEuo94eTbiQzkfGj3S2lMVHHEf1tZ4CXdCywNLSkJcYwviGpiiGTKO23KvOBBRkHr0y/ngcw7Eo+3H0Xiqj4ocKvPe+xOAEbop0j+dopbLQnPpb7m9RxUaq2lBmfXuOAGOAFPKkP7tkHUix0YW8BhUroX8zvIPS8En3rquyQKBgQCD19QbCeDXProX7NBm6p20GlFFzCUeqQeIqEFdHQvvMQ53+vzcKx619xDjSDNNbKj6UVMu+1r4R7+R2fKyJActs/KXE85I57Ypk/w85gzeqstmNMh1IMQyP3RpO5z4rzKIcs7YyInSlNmm0TnNivrDsUZ0Z5pcb+nVRlp9uojnTQKBgCi3/uwBNmoj97WGdfgw5NmMCzF2ZtpVRBR+OjLVi5cJ2kYJwsUtX81VkOkrbGI0fvS9x6wnxvqRf+9UOppoRJ/crvmVeosnqdh4p/+u6qYnAgaw39jTGyvKqN6V0bsFwNEH+zaj1emD7vfau2jdWHkbgJLpzsn7z1E6M7O+ib4RAoGAX5oNfzj1Os6KxkvUTOOuifSShIbbvKt45Vn5WEHZ4yF+Y5grhxWys3r1JZAWEvG/Hkf0g415zrsxLV/d0aH4EKLI2WT8sMfd4roIliOCorGi+itsHcOpwJ0zfidkkwfE/Pn0wW88MmmI2LY7CtqGv8Bueya6191/oe5FbgGbW2M=")))
 	//fmt.Println((bytes2outputString([]byte("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsnEHdrjPw98cluCQtCEVpHsvA1EIqKUEUtMJVYbg2SIP3gy3/RwKWdv9dVSY2fHsQxlvwAAMjArgqX5zmi4HZB6fHyc/DoDt32ErfwTpblAFXlg3vb6OGjbFyLq4neiy3FH2jbpxiEDUsseHSXEyK40ivMA7GDjcIKkC6qkGKA+DtY7WEefGNiStcklDMu7eQWL0jj86PlItZgw7jtuOu6lEwo7lSzxKpyf1iub+HBmCNB0ELjamr4jHjZ8U5Rhgnh8wHB8tYMUoj4hma3+f2EO1GG/sw+QXto0IUx5JmAkls4FTAxSzMp/AbFOELo285SV04gZJ0WZQaI5kqUKagwIDAQAB"))))
