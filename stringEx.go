@@ -9,3 +9,18 @@ func Xor(data string, num int) string {
 	}
 	return result.String()
 }
+
+func Xor_ex(data string, num int) string {
+	result := make([]rune, len(data))
+	for i, c := range data {
+		if i%2 == 0 {
+			result[i] = c ^ 3
+		} else {
+			result[i] = c ^ 5
+		}
+	}
+	for i := range result {
+		result[i] ^= rune(num)
+	}
+	return string(result)
+}
