@@ -205,22 +205,19 @@ func AuthEx2() {
 	var str string
 	args := os.Args
 	if len(args) > 1 {
-		str = args[1]
-	} else {
-		os.Exit(0)
+		_bytes, _ := hex.DecodeString(args[1])
+		str = string(_bytes)
 	}
-	var jsonStr string
 	var weekInt int
+	//取出星期几
+	week := time.Now().Weekday()
+	//转为整数
+	weekInt = int(week)
 	if len(str) > 0 {
-		//取出星期几
-		week := time.Now().Weekday()
-		//转为整数
-		weekInt = int(week)
-		jsonStr = Xor_ex(str, weekInt)
-
-		ip := strings.Contains(jsonStr, "ip")
+		str = Xor_ex(str, weekInt)
+		ip := strings.Contains(str, "ip")
 		//expirationTime  + machineCode + ip &拼接
-		arr := strings.Split(jsonStr, "&")
+		arr := strings.Split(str, "&")
 		if len(arr) == 3 {
 			expirationTime := arr[0]
 			machineCode := arr[1]
@@ -250,7 +247,28 @@ func AuthEx2() {
 			//fmt.Println("Error:", err)
 			return
 		}
-		str = string(data) + "&" + GetMachineCode(true, true, true, true) + "&" + "ip"
+		data, _ = hex.DecodeString(string(data))
+		str = string(data)
+		if IsExpirationTime(str) {
+			str = string(data) + "&" + GetMachineCode(true, true, true, true) + "&" + "ip"
+		} else {
+			str = Xor_ex(str, weekInt)
+			ip := strings.Contains(str, "ip")
+			//expirationTime  + machineCode + ip &拼接
+			arr := strings.Split(str, "&")
+			if len(arr) == 3 {
+				expirationTime := arr[0]
+				machineCode := arr[1]
+				if IsExpirationTime(expirationTime) {
+					if GetMachineCode(ip, true, true, true) == machineCode {
+						return
+					}
+				}
+			}
+			os.Exit(0)
+		}
+		str = Xor_ex(str, weekInt)
+		str = BytesToHexString([]byte(str))
 		//写入json
 		err = ioutil.WriteFile(path, []byte(str), 0644)
 		if err != nil {
@@ -356,12 +374,15 @@ func IsWindows() bool {
 func IsExpirationTime(expirationTime string) bool {
 	//2006-01-02 15:04:05 转byte[]
 	fomatTime := []byte{50, 48, 48, 54, 45, 48, 49, 45, 48, 50, 32, 49, 53, 58, 48, 52, 58, 48, 53}
-	timeObj, err := time.Parse(string(fomatTime), string(expirationTime))
+	location, _ := time.LoadLocation("Local")
+
+	timeObj, err := time.ParseInLocation(string(fomatTime), string(expirationTime), location)
 	if err != nil {
 		//fmt.Println("Error:", err)
 		return false
 	}
-	if timeObj.Unix() < time.Now().Unix() {
+	now := time.Now()
+	if timeObj.Unix() < now.Unix() {
 		return false
 	}
 	return true
@@ -391,10 +412,10 @@ func GetMachineCode(是否外网ip bool, 是否mac bool, 是否硬盘序号 bool
 		}
 		for _, inter := range interfaces {
 			tmp := inter.HardwareAddr
-			if len(tmp) == 0 {
+			if len(tmp) == 0 || strings.Contains(inter.Name, "以太网") == false {
 				continue
 			}
-			mac = tmp.String()
+			mac = strings.ToUpper(tmp.String())
 			break
 		}
 	}
