@@ -2,18 +2,10 @@ package MyUitls
 
 import (
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/md5"
-	"crypto/rand"
-	"crypto/rc4"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"encoding/pem"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -129,46 +121,6 @@ func Md5(str string) string {
 	h := md5.New()
 	h.Write([]byte(str))
 	return hex.EncodeToString(h.Sum(nil))
-}
-
-// rc4加密
-func RC4Encrypt(key, data []byte) ([]byte, error) {
-	cipher, err := rc4.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	cipherText := make([]byte, len(data))
-	cipher.XORKeyStream(cipherText, data)
-	return cipherText, nil
-}
-
-func AESEncrypt(key, data []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	iv := make([]byte, aes.BlockSize)
-	stream := cipher.NewCTR(block, iv)
-	cipherText := make([]byte, len(data))
-	stream.XORKeyStream(cipherText, data)
-	return cipherText, nil
-}
-
-func RSAEncrypt(pubKey, data []byte) ([]byte, error) {
-	block, _ := pem.Decode(pubKey)
-	if block == nil {
-		return nil, errors.New("pages key error")
-	}
-	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-	pubInterface := pub.(*rsa.PublicKey)
-	cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, pubInterface, data)
-	if err != nil {
-		return nil, err
-	}
-	return cipherText, nil
 }
 
 // 编码utf8-ansi

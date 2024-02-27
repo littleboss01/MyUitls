@@ -5,12 +5,15 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/rc4"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
+	"errors"
 	"fmt"
 	"github.com/shirou/gopsutil/cpu"
 	"io/ioutil"
@@ -436,4 +439,60 @@ func GetMachineCode(是否外网ip bool, 是否mac bool, 是否硬盘序号 bool
 	}
 	machineCode := wanIp + "|" + mac + "|" + diskSerialNumber + "|" + cpuid
 	return machineCode
+}
+
+// rc4加密
+func RC4Encrypt(key, data []byte) ([]byte, error) {
+	cipher, err := rc4.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	cipherText := make([]byte, len(data))
+	cipher.XORKeyStream(cipherText, data)
+	return cipherText, nil
+}
+
+func AESEncrypt(key, data []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	iv := make([]byte, aes.BlockSize)
+	stream := cipher.NewCTR(block, iv)
+	cipherText := make([]byte, len(data))
+	stream.XORKeyStream(cipherText, data)
+	return cipherText, nil
+}
+func AESDecrypt(key, data []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(data) < aes.BlockSize {
+		return nil, errors.New("ciphertext too short")
+	}
+
+	iv := make([]byte, aes.BlockSize)
+	stream := cipher.NewCTR(block, iv)
+	plaintext := make([]byte, len(data))
+	stream.XORKeyStream(plaintext, data)
+
+	return plaintext, nil
+}
+func RSAEncrypt(pubKey, data []byte) ([]byte, error) {
+	block, _ := pem.Decode(pubKey)
+	if block == nil {
+		return nil, errors.New("pages key error")
+	}
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	pubInterface := pub.(*rsa.PublicKey)
+	cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, pubInterface, data)
+	if err != nil {
+		return nil, err
+	}
+	return cipherText, nil
 }
