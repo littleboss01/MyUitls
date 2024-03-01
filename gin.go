@@ -13,6 +13,12 @@ func GinConfig(e *gin.Engine) {
 	config, err := ini.Load("config.ini")
 	if err != nil {
 		log.Println("配置文件加载失败")
+		//生成默认配置文件
+		config = ini.Empty()
+		server := config.Section("server")
+		server.Key("mode").SetValue("debug")
+		server.Key("addr").SetValue("127.0.0.1")
+		server.Key("port").SetValue("8080")
 		return
 	}
 	//读取配置项
