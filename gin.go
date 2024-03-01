@@ -13,6 +13,7 @@ func GinConfig(e *gin.Engine) {
 	config, err := ini.Load("config.ini")
 	if err != nil {
 		log.Println("配置文件加载失败")
+		return
 	}
 	//读取配置项
 	server := config.Section("server")
